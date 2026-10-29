@@ -1,0 +1,55 @@
+# Every value can be overridden with the environment variable named in ${...}.
+# Defaults are for local development; see .env.example.
+
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: transfer-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/transfer_db}
+    username: ${DB_USERNAME:transfer_user}
+    password: ${DB_PASSWORD:transfer_pass}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the schema (src/main/resources/db/migration)
+      ddl-auto: none
+  flyway:
+    enabled: true
+
+transfer:
+  max-amount: ${TRANSFER_MAX_AMOUNT:100000.00}
+  downstream:
+    account-url: ${ACCOUNT_SERVICE_URL:http://localhost:8081}
+    ledger-url: ${LEDGER_SERVICE_URL:http://localhost:8083}
+    limits-url: ${LIMITS_SERVICE_URL:http://localhost:8084}
+    notification-url: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+    connect-timeout: ${DOWNSTREAM_CONNECT_TIMEOUT_MS:1000}ms
+    read-timeout: ${DOWNSTREAM_READ_TIMEOUT_MS:3000}ms
+  retry:
+    max-attempts: ${RETRY_MAX_ATTEMPTS:3}
+    base-delay: ${RETRY_BASE_DELAY_MS:200}ms
+    max-delay: ${RETRY_MAX_DELAY_MS:2000}ms
+  recovery:
+    enabled: ${RECOVERY_ENABLED:true}
+    interval-ms: ${RECOVERY_INTERVAL_MS:15000}
+    # Must be longer than the slowest possible request, so the job never touches a live one
+    stuck-after: ${RECOVERY_STUCK_AFTER_SECONDS:60}s
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Structured JSON logs; MDC fields requestId and transferId are included in every line.
+logging:
+  structured:
+    format:
+      console: ${LOG_FORMAT:logstash}
+  level:
+    com.moneytransfer: ${LOG_LEVEL:INFO}
